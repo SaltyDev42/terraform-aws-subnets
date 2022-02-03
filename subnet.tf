@@ -12,14 +12,14 @@ locals {
           cidr_block = cidrsubnet(vpc.cidr_block, 4,
             j+i*length(data.aws_availability_zones.az.names))
           az         = data.aws_availability_zones.az.names[j]
-          vpc_id     = aws_vpc.okd[env].id
+          vpc_id     = aws_vpc.main[env].id
         }
       ]
     ]
   ])
 }
 
-resource "aws_subnet" "okd" {
+resource "aws_subnet" "main" {
   for_each = {
     for subnet in local.subnets: "${subnet.env}.${subnet.az}.${subnet.zone}" => subnet
   }
@@ -29,32 +29,7 @@ resource "aws_subnet" "okd" {
   cidr_block = each.value.cidr_block
 
   tags = {
-    Name = "okd-${each.key}-subnet"
+    Name = "main-${each.key}-subnet"
     owner = var.user
   }
 }
-
-# resource "aws_subnet" "okd_private" {
-#   for_each = var.vpcs.okd.subnets.private
-
-#   cidr_block = each.key.cidr_block
-#   availability_zone = each.key.az
-#   vpc_id = aws_vpc.okd["okd"].id
-# }
-
-# resource "aws_subnet" "okd_public" {
-#   for_each = var.vpcs.okd.subnets.public
-
-#   cidr_block = each.key.cidr_block
-#   availability_zone = each.key.az
-#   vpc_id = aws_vpc.okd["okd"].id
-# }
-
-# resource "aws_subnet" "sre" {
-#   for_each = var.vpcs.sre.subnets.public
-
-#   cidr_block = each.key.cidr_block
-#   availability_zone = each.key.az
-#   vpc_id = aws_vpc.okd["sre"].id
-# }
-
